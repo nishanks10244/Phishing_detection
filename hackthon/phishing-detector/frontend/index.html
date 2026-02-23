@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.phishing {
+            background: #fee;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .result.legitimate {
+            background: #efe;
+            border-left: 4px solid #27ae60;
+        }
+
+        .result.warning {
+            background: #f5f5dc;
+            border-left: 4px solid #f39c12;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .result.phishing .result-title {
+            color: #c0392b;
+        }
+
+        .result.legitimate .result-title {
+            color: #229954;
+        }
+
+        .result.warning .result-title {
+            color: #d68910;
+        }
+
+        .result-content {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .confidence-meter {
+            margin: 15px 0;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #f39c12 50%, #e74c3c 100%);
+            transition: width 0.5s ease;
+        }
+
+        .details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-value {
+            color: #777;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .alert-badge.critical {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .alert-badge.high {
+            background: #e67e22;
+            color: white;
+        }
+
+        .alert-badge.medium {
+            background: #f39c12;
+            color: white;
+        }
+
+        .alert-badge.low {
+            background: #3498db;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Phishing Detection System</h1>
+        <p class="subtitle">Real-time scanning for phishing emails and malicious URLs</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('email')">Scan Email</button>
+            <button class="tab-btn" onclick="switchTab('url')">Scan URL</button>
+        </div>
+
+        <!-- Email Scanning Tab -->
+        <div id="email" class="tab-content active">
+            <form onsubmit="scanEmail(event)">
+                <div class="form-group">
+                    <label for="email-content">Email Content</label>
+                    <textarea id="email-content" placeholder="Paste full email content here (including headers if possible)..." required></textarea>
+                </div>
+                <button type="submit">Scan Email</button>
+            </form>
+        </div>
+
+        <!-- URL Scanning Tab -->
+        <div id="url" class="tab-content">
+            <form onsubmit="scanURL(event)">
+                <div class="form-group">
+                    <label for="url-input">URL</label>
+                    <input type="text" id="url-input" placeholder="Enter URL to scan..." required>
+                </div>
+                <button type="submit">Scan URL</button>
+            </form>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Scanning...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+
+            // Clear results
+            clearResults();
+        }
+
+        async function scanEmail(e) {
+            e.preventDefault();
+            const emailContent = document.getElementById('email-content').value;
+
+            if (!emailContent.trim()) {
+                alert('Please enter email content');
+                return;
+            }
+
+            await performScan({
+                type: 'email',
+                data: { email_content: emailContent }
+            });
+        }
+
+        async function scanURL(e) {
+            e.preventDefault();
+            const url = document.getElementById('url-input').value;
+
+            if (!url.trim()) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            await performScan({
+                type: 'url',
+                data: { url: url }
+            });
+        }
+
+        async function performScan(scanData) {
+            const loadingEl = document.getElementById('loading');
+            const resultEl = document.getElementById('result');
+
+            loadingEl.style.display = 'block';
+            resultEl.classList.remove('show');
+
+            try {
+                const endpoint = scanData.type === 'email' ? '/scan/email' : '/scan/url';
+                const response = await fetch(API_BASE + endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scanData.data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayResult(result, scanData.type);
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultEl.innerHTML = `
+                    <div class="result-title" style="color: #e74c3c;">Error</div>
+                    <div class="result-content">${error.message}</div>
+                `;
+                resultEl.classList.add('show', 'warning');
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        function displayResult(data, type) {
+            const resultEl = document.getElementById('result');
+            const isPhishing = data.is_phishing;
+            const confidence = (data.confidence * 100).toFixed(1);
+            const riskLevel = data.risk_level;
+
+            let html = `
+                <div class="result-title">
+                    ${isPhishing ? '⚠️ PHISHING DETECTED' : '✅ LEGITIMATE'}
+                </div>
+                <div class="result-content">
+                    <div class="confidence-meter">
+                        <div class="confidence-label">
+                            <span>Phishing Confidence</span>
+                            <span id="confidence-percent">${confidence}%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidence}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="alert-badge ${riskLevel}">Risk Level: ${riskLevel}</div>
+
+                    <div class="details">
+            `;
+
+            if (type === 'email' && data.details) {
+                html += `
+                    <div class="detail-item">
+                        <span class="detail-label">From:</span>
+                        <span class="detail-value">${data.details.sender || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Subject:</span>
+                        <span class="detail-value">${data.details.subject || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">URLs Found:</span>
+                        <span class="detail-value">${data.details.url_count}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Suspicious URLs:</span>
+                        <span class="detail-value">${data.details.suspicious_urls}</span>
+                    </div>
+                `;
+                if (data.details.urls && data.details.urls.length > 0) {
+                    html += `
+                    <div class="detail-item">
+                        <span class="detail-label">URLs:</span>
+                    </div>
+                    `;
+                    data.details.urls.forEach(url => {
+                        html += `<div style="margin-left: 20px; color: #666; font-size: 12px; word-break: break-all;">${url}</div>`;
+                    });
+                }
+            } else if (type === 'url' && data.details) {
+                html += `
+                    <div class="detail-item">
+                        <span class="detail-label">Domain:</span>
+                        <span class="detail-value">${data.details.domain}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Uses HTTPS:</span>
+                        <span class="detail-value">${data.details.uses_https ? '✅ Yes' : '❌ No'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Has IP Address:</span>
+                        <span class="detail-value">${data.details.has_ip ? '⚠️ Yes' : 'No'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Suspicious Pattern:</span>
+                        <span class="detail-value">${data.details.suspicious_pattern ? '⚠️ Yes' : 'No'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Suspicious TLD:</span>
+                        <span class="detail-value">${data.details.suspicious_tld ? '⚠️ Yes' : 'No'}</span>
+                    </div>
+                `;
+            }
+
+            html += `</div></div>`;
+
+            resultEl.innerHTML = html;
+            resultEl.classList.add('show');
+            resultEl.className = `result show ${isPhishing ? 'phishing' : 'legitimate'}`;
+        }
+
+        function clearResults() {
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('email-content').value = '';
+            document.getElementById('url-input').value = '';
+        }
+
+        // Check API health on page load
+        window.addEventListener('load', () => {
+            fetch(API_BASE + '/health')
+                .then(r => r.json())
+                .then(data => {
+                    console.log('API Status:', data);
+                })
+                .catch(e => {
+                    console.warn('Could not connect to API. Make sure the server is running on http://localhost:5000');
+                });
+        });
+    </script>
+</body>
+</html>

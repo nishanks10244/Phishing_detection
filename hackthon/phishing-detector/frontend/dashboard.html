@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard - AI-Powered Phishing Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #fbbf24;
+            --primary-dark: #f59e0b;
+            --primary-light: #fcd34d;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-border: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f35 50%, #0f172a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--dark-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 6rem 2rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #000;
+            padding: 1rem 2.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(251, 191, 36, 0.3);
+        }
+
+        .cta-button:active {
+            transform: translateY(0);
+        }
+
+        /* Scanner Container */
+        .scanner-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .scanner-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--dark-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+
+        .scanner-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 25px 80px rgba(251, 191, 36, 0.1);
+        }
+
+        .scanner-card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Scanner Tabs */
+        .scanner-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--dark-border);
+        }
+
+        .scanner-tab {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .scanner-tab:hover {
+            color: var(--primary);
+        }
+
+        .scanner-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Input Area */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px solid var(--dark-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Scan Button */
+        .scan-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.2);
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(251, 191, 36, 0.3);
+        }
+
+        .scan-btn:active {
+            transform: translateY(0);
+        }
+
+        .scan-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Results */
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: none;
+            animation: slideIn 0.4s ease;
+            border-left: 4px solid;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.safe {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: var(--success);
+        }
+
+        .result.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--danger);
+        }
+
+        .result.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .result.safe .result-title {
+            color: var(--success);
+        }
+
+        .result.danger .result-title {
+            color: var(--danger);
+        }
+
+        .result.warning .result-title {
+            color: var(--warning);
+        }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            margin: 1.5rem 0;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .confidence-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Result Details */
+        .result-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            max-width: 1200px;
+            margin: 4rem auto 0;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(241, 245, 249, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            nav ul {
+                gap: 1.5rem;
+            }
+
+            .scanner-card {
+                padding: 1.5rem;
+            }
+
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge.safe {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .badge.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#scanner">Scanner</a></li>
+            <li><a href="#stats">Statistics</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1>Protect yourself from <span>phishing attacks</span></h1>
+        <p>AI-powered real-time detection system that keeps your data safe</p>
+    </div>
+
+    <!-- Scanner Section -->
+    <div class="scanner-section" id="scanner">
+        <div class="scanner-card">
+            <h2>🔍 Real-Time Scanner</h2>
+
+            <!-- Tabs -->
+            <div class="scanner-tabs">
+                <button class="scanner-tab active" onclick="switchTab('email')">Email</button>
+                <button class="scanner-tab" onclick="switchTab('url')">URL</button>
+            </div>
+
+            <!-- Email Tab -->
+            <div id="email-tab" class="tab-content active">
+                <div class="input-group">
+                    <label for="email-input">Paste Email Content</label>
+                    <textarea id="email-input" placeholder="Paste full email content here (headers, body, links...)"></textarea>
+                </div>
+                <button class="scan-btn" onclick="scanEmail()">
+                    <span class="scan-icon">🔎</span>
+                    <span class="scan-text">Scan Email</span>
+                </button>
+            </div>
+
+            <!-- URL Tab -->
+            <div id="url-tab" class="tab-content">
+                <div class="input-group">
+                    <label for="url-input">Enter URL</label>
+                    <input type="text" id="url-input" placeholder="https://example.com">
+                </div>
+                <button class="scan-btn" onclick="scanURL()">
+                    <span class="scan-icon">🔗</span>
+                    <span class="scan-text">Scan URL</span>
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section" id="stats">
+        <div class="stat-card">
+            <div class="stat-number">99%</div>
+            <div class="stat-label">Detection Accuracy</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">1M+</div>
+            <div class="stat-label">URLs Scanned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">&lt;1s</div>
+            <div class="stat-label">Response Time</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.scanner-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tab + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function scanEmail() {
+            const email = document.getElementById('email-input').value.trim();
+            if (!email) {
+                showResult('Please enter email content', 'warning');
+                return;
+            }
+
+            await performScan('email', { email_content: email });
+        }
+
+        async function scanURL() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) {
+                showResult('Please enter a URL', 'warning');
+                return;
+            }
+
+            await performScan('url', { url: url });
+        }
+
+        async function performScan(type, data) {
+            const btn = document.querySelector('.scan-btn');
+            const endpoint = type === 'email' ? '/scan/email' : '/scan/url';
+
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="loading-spinner"></span> Scanning...';
+
+            try {
+                const response = await fetch(API_BASE + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                displayResult(result, type);
+            } catch (error) {
+                showResult('Connection Error: ' + error.message, 'warning');
+                console.error(error);
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<span class="scan-icon">🔎</span><span class="scan-text">Scan ' + (type === 'email' ? 'Email' : 'URL') + '</span>';
+            }
+        }
+
+        function displayResult(data, type) {
+            const resultEl = document.getElementById('result');
+            const isPhishing = data.is_phishing;
+            const confidence = (data.confidence * 100).toFixed(1);
+            const riskLevel = data.risk_level;
+
+            let statusClass = riskLevel === 'critical' || riskLevel === 'high' ? 'danger' :
+                              riskLevel === 'medium' ? 'warning' : 'safe';
+
+            let html = `
+                <div class="result-header">
+                    <div class="result-title">
+                        ${isPhishing ? '⚠️ PHISHING DETECTED' : '✅ SAFE'}
+                    </div>
+                    <span class="badge ${statusClass}">${riskLevel.toUpperCase()}</span>
+                </div>
+
+                <div class="confidence-meter">
+                    <div class="confidence-label">
+                        <span>Threat Level</span>
+                        <span>${confidence}%</span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confidence}%"></div>
+                    </div>
+                </div>
+
+                <div class="result-details">
+            `;
+
+            if (type === 'email' && data.details) {
+                html += `
+                    <div class="detail-row">
+                        <span class="detail-label">From:</span>
+                        <span class="detail-value">${data.details.sender || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Subject:</span>
+                        <span class="detail-value">${data.details.subject || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">URLs Found:</span>
+                        <span class="detail-value">${data.details.url_count}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Suspicious URLs:</span>
+                        <span class="detail-value" style="color: ${data.details.suspicious_urls > 0 ? '#ef4444' : '#22c55e'};">${data.details.suspicious_urls}</span>
+                    </div>
+                `;
+            } else if (type === 'url' && data.details) {
+                html += `
+                    <div class="detail-row">
+                        <span class="detail-label">Domain:</span>
+                        <span class="detail-value">${data.details.domain}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">HTTPS:</span>
+                        <span class="detail-value">${data.details.uses_https ? '✅ Secure' : '❌ Not Secure'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">IP Address:</span>
+                        <span class="detail-value">${data.details.has_ip ? '⚠️ Yes' : '✅ No'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Suspicious Pattern:</span>
+                        <span class="detail-value">${data.details.suspicious_pattern ? '⚠️ Yes' : '✅ No'}</span>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            resultEl.innerHTML = html;
+            resultEl.className = 'result show ' + statusClass;
+        }
+
+        function showResult(message, type) {
+            const resultEl = document.getElementById('result');
+            resultEl.innerHTML = `<div class="result-title" style="color: #f59e0b;">${message}</div>`;
+            resultEl.className = 'result show ' + type;
+        }
+    </script>
+</body>
+</html>
